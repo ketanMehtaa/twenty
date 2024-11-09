@@ -4,7 +4,6 @@ import { NavigationDrawerAnimatedCollapseWrapper } from '@/ui/navigation/navigat
 import { NavigationDrawerSection } from '@/ui/navigation/navigation-drawer/components/NavigationDrawerSection';
 import { NavigationDrawerSectionTitle } from '@/ui/navigation/navigation-drawer/components/NavigationDrawerSectionTitle';
 import { useNavigationSection } from '@/ui/navigation/navigation-drawer/hooks/useNavigationSection';
-import { isNavigationDrawerExpandedState } from '@/ui/navigation/states/isNavigationDrawerExpanded';
 import { useIsMobile } from '@/ui/utilities/responsive/hooks/useIsMobile';
 import { ScrollWrapper } from '@/ui/utilities/scroll/components/ScrollWrapper';
 import styled from '@emotion/styled';
@@ -93,6 +92,7 @@ export const NavigationDrawerSectionForObjectMetadataItems = ({
                 (objectMetadataItem) => (
                   <NavigationDrawerItemForObjectMetadataItem
                     mobileNavigationDrawer={mobileNavigationDrawer}
+                    key={`navigation-drawer-item-${objectMetadataItem.id}`}
                     objectMetadataItem={objectMetadataItem}
                   />
                 ),

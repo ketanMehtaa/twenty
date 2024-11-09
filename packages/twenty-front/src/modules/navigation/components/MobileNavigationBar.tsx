@@ -12,7 +12,10 @@ import {
   IconList,
   IconSearch,
   IconSettings,
+  NavigationBar,
+  NavigationBarItem,
 } from 'twenty-ui';
+import { useOpenSettingsMenu } from '@/navigation/hooks/useOpenSettings';
 import { useIsSettingsPage } from '../hooks/useIsSettingsPage';
 import { currentMobileNavigationDrawerState } from '../states/currentMobileNavigationDrawerState';
 
@@ -25,8 +28,6 @@ import { navigationMemorizedUrlState } from '@/ui/navigation/states/navigationMe
 import { useIsMobile } from '@/ui/utilities/responsive/hooks/useIsMobile';
 import { useIsFeatureEnabled } from '@/workspace/hooks/useIsFeatureEnabled';
 import styled from '@emotion/styled';
-import { NavigationBar } from '@/ui/navigation/navigation-bar/components/NavigationBar';
-import { NavigationBarItem } from '@/ui/navigation/navigation-bar/components/NavigationBarItem';
 
 // type NavigationBarItemName = 'main' | 'search' | 'tasks' | 'settings';
 
@@ -58,6 +59,8 @@ export const MobileNavigationBar = () => {
     (currentWorkspace?.logo && getImageAbsoluteURI(currentWorkspace.logo)) ??
     undefined;
   const title = currentWorkspace?.displayName ?? undefined;
+
+  const { openSettingsMenu } = useOpenSettingsMenu();
   const activeItemName = isNavigationDrawerExpanded
     ? currentMobileNavigationDrawer
     : isCommandMenuOpened
