@@ -20,7 +20,6 @@ type NavigationDrawerItemsCollapsedContainerProps = {
 };
 
 export const NavigationDrawerItemsCollapsedContainer = ({
-  mobileNavigationDrawer,
   isGroup = false,
   children,
 }: NavigationDrawerItemsCollapsedContainerProps) => {

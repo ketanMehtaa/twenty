@@ -9,10 +9,10 @@ import { useIsPrefetchLoading } from '@/prefetch/hooks/useIsPrefetchLoading';
 
 export const NavigationDrawerSectionForObjectMetadataItemsWrapper = ({
   isRemote,
-  mobileNavigationDrawer
+  mobileNavigationDrawer,
 }: {
   isRemote: boolean;
-  mobileNavigationDrawer?:boolean;
+  mobileNavigationDrawer?: boolean;
 }) => {
   const currentUser = useRecoilValue(currentUserState);
 
@@ -27,7 +27,8 @@ export const NavigationDrawerSectionForObjectMetadataItemsWrapper = ({
   }
 
   return (
-    <NavigationDrawerSectionForObjectMetadataItems mobileNavigationDrawer={mobileNavigationDrawer}
+    <NavigationDrawerSectionForObjectMetadataItems
+      mobileNavigationDrawer={mobileNavigationDrawer}
       sectionTitle={isRemote ? 'Remote' : 'Workspace'}
       objectMetadataItems={filteredActiveObjectMetadataItems}
       isRemote={isRemote}

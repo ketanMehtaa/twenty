@@ -4,18 +4,13 @@ import { isCommandMenuOpenedState } from '@/command-menu/states/isCommandMenuOpe
 import { WorkspaceFavorites } from '@/favorites/components/WorkspaceFavorites';
 import { NavigationDrawerHeader } from '@/ui/navigation/navigation-drawer/components/NavigationDrawerHeader';
 import { isNavigationDrawerExpandedState } from '@/ui/navigation/states/isNavigationDrawerExpanded';
-import { useLocation } from 'react-router-dom';
-import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
+import { useRecoilState, useRecoilValue } from 'recoil';
 import {
   getImageAbsoluteURI,
-  IconComponent,
-  IconList,
   IconSearch,
   IconSettings,
-  NavigationBar,
   NavigationBarItem,
 } from 'twenty-ui';
-import { useOpenSettingsMenu } from '@/navigation/hooks/useOpenSettings';
 import { useIsSettingsPage } from '../hooks/useIsSettingsPage';
 import { currentMobileNavigationDrawerState } from '../states/currentMobileNavigationDrawerState';
 
@@ -23,15 +18,11 @@ import { CurrentWorkspaceMemberFavorites } from '@/favorites/components/CurrentW
 import { NavigationDrawerOpenedSection } from '@/object-metadata/components/NavigationDrawerOpenedSection';
 import { NavigationDrawerSectionForObjectMetadataItemsWrapper } from '@/object-metadata/components/NavigationDrawerSectionForObjectMetadataItemsWrapper';
 import { NavigationDrawerItem } from '@/ui/navigation/navigation-drawer/components/NavigationDrawerItem';
-import { navigationDrawerExpandedMemorizedState } from '@/ui/navigation/states/navigationDrawerExpandedMemorizedState';
-import { navigationMemorizedUrlState } from '@/ui/navigation/states/navigationMemorizedUrlState';
 import { useIsMobile } from '@/ui/utilities/responsive/hooks/useIsMobile';
 import { useIsFeatureEnabled } from '@/workspace/hooks/useIsFeatureEnabled';
 import styled from '@emotion/styled';
 
-// type NavigationBarItemName = 'main' | 'search' | 'tasks' | 'settings';
-
-const NavigationWrapper = styled.div`
+const StyledNavigationWrapper = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -42,7 +33,7 @@ const NavigationWrapper = styled.div`
   z-index: 1001;
 `;
 
-const NavigationItem = styled.div``;
+const StyledNavigationItem = styled.div``;
 
 export const MobileNavigationBar = () => {
   const [isCommandMenuOpened] = useRecoilState(isCommandMenuOpenedState);
@@ -60,7 +51,6 @@ export const MobileNavigationBar = () => {
     undefined;
   const title = currentWorkspace?.displayName ?? undefined;
 
-  const { openSettingsMenu } = useOpenSettingsMenu();
   const activeItemName = isNavigationDrawerExpanded
     ? currentMobileNavigationDrawer
     : isCommandMenuOpened
@@ -70,70 +60,23 @@ export const MobileNavigationBar = () => {
         : 'main';
 
   const isMobile = useIsMobile();
-  // const { toggleCommandMenu } = useCommandMenu();
-  const location = useLocation();
-  const setNavigationMemorizedUrl = useSetRecoilState(
-    navigationMemorizedUrlState,
-  );
+
   const isWorkspaceFavoriteEnabled = useIsFeatureEnabled(
     'IS_WORKSPACE_FAVORITE_ENABLED',
   );
 
-  const setNavigationDrawerExpandedMemorized = useSetRecoilState(
-    navigationDrawerExpandedMemorizedState,
-  );
-
-  // const items: {
-  //   name: NavigationBarItemName;
-  //   Icon: IconComponent;
-  //   onClick: () => void;
-  // }[] = [
-  //   {
-  //     name: 'main',
-  //     Icon: IconList,
-  //     onClick: () => {
-  //       closeCommandMenu();
-  //       setIsNavigationDrawerExpanded(
-  //         (previousIsOpen) => activeItemName !== 'main' || !previousIsOpen,
-  //       );
-  //       setCurrentMobileNavigationDrawer('main');
-  //     },
-  //   },
-  //   {
-  //     name: 'search',
-  //     Icon: IconSearch,
-  //     onClick: () => {
-  //       if (!isCommandMenuOpened) {
-  //         openCommandMenu();
-  //       }
-  //       setIsNavigationDrawerExpanded(false);
-  //     },
-  //   },
-  //   {
-  //     name: 'settings',
-  //     Icon: IconSettings,
-  //     onClick: () => {
-  //       closeCommandMenu();
-  //       setIsNavigationDrawerExpanded(
-  //         (previousIsOpen) => activeItemName !== 'settings' || !previousIsOpen,
-  //       );
-  //       setCurrentMobileNavigationDrawer('settings');
-  //     },
-  //   },
-  // ];
-
   return (
     <>
-      <NavigationWrapper>
-        <NavigationItem>
+      <StyledNavigationWrapper>
+        <StyledNavigationItem>
           <NavigationDrawerHeader
             visible={isMobile}
             name={title}
             logo={logo}
             showCollapseButton={false}
           />
-        </NavigationItem>
-        <NavigationItem>
+        </StyledNavigationItem>
+        <StyledNavigationItem>
           <NavigationDrawerItem
             label="Search"
             Icon={IconSearch}
@@ -146,58 +89,37 @@ export const MobileNavigationBar = () => {
             }}
             // keyboard={['⌘', 'K']}
           />
-        </NavigationItem>
-        <NavigationItem>
+        </StyledNavigationItem>
+        <StyledNavigationItem>
           <NavigationBarItem
             key={'settings'}
             Icon={IconSettings}
             isActive={activeItemName === 'settings'}
             onClick={() => {
               closeCommandMenu();
-              // setNavigationDrawerExpandedMemorized(isNavigationDrawerExpanded);
               setIsNavigationDrawerExpanded(
                 (previousIsOpen) =>
                   activeItemName !== 'settings' || !previousIsOpen,
               );
-              // setNavigationMemorizedUrl(location.pathname + location.search);
               setCurrentMobileNavigationDrawer('settings');
             }}
           />
-        </NavigationItem>
-
-        {/* <NavigationItem>
-          <NavigationDrawerItem
-            mobileNavigationDrawer={true}
-            label="Settings"
-            to={'/settings/profile'}
-            Icon={IconSettings}
-            onClick={() => {
-              closeCommandMenu();
-              // setNavigationDrawerExpandedMemorized(isNavigationDrawerExpanded);
-              setIsNavigationDrawerExpanded(
-                (previousIsOpen) =>
-                  activeItemName !== 'settings' || !previousIsOpen,
-              );
-              // setNavigationMemorizedUrl(location.pathname + location.search);
-              setCurrentMobileNavigationDrawer('settings');
-            }}
-          />
-        </NavigationItem> */}
+        </StyledNavigationItem>
 
         {isWorkspaceFavoriteEnabled && (
-          <NavigationItem>
+          <StyledNavigationItem>
             <NavigationDrawerOpenedSection mobileNavigationDrawer={true} />
-          </NavigationItem>
+          </StyledNavigationItem>
         )}
 
-        <NavigationItem>
+        <StyledNavigationItem>
           <CurrentWorkspaceMemberFavorites mobileNavigationDrawer={true} />
-        </NavigationItem>
+        </StyledNavigationItem>
 
         {isWorkspaceFavoriteEnabled ? (
-          <NavigationItem>
+          <StyledNavigationItem>
             <WorkspaceFavorites mobileNavigationDrawer={true} />
-          </NavigationItem>
+          </StyledNavigationItem>
         ) : (
           <NavigationDrawerSectionForObjectMetadataItemsWrapper
             mobileNavigationDrawer={true}
@@ -205,15 +127,13 @@ export const MobileNavigationBar = () => {
           />
         )}
 
-        <NavigationItem>
+        <StyledNavigationItem>
           <NavigationDrawerSectionForObjectMetadataItemsWrapper
             mobileNavigationDrawer={true}
             isRemote={true}
           />
-        </NavigationItem>
-      </NavigationWrapper>
-
-      {/* <NavigationBar activeItemName={activeItemName} items={items} /> */}
+        </StyledNavigationItem>
+      </StyledNavigationWrapper>
     </>
   );
 };

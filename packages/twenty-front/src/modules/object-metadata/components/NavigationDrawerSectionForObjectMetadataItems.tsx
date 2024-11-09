@@ -36,7 +36,7 @@ export const NavigationDrawerSectionForObjectMetadataItems = ({
   sectionTitle: string;
   isRemote: boolean;
   objectMetadataItems: ObjectMetadataItem[];
-  mobileNavigationDrawer?:boolean,
+  mobileNavigationDrawer?: boolean;
 }) => {
   const isMobile = useIsMobile();
   const { toggleNavigationSection, isNavigationSectionOpenState } =

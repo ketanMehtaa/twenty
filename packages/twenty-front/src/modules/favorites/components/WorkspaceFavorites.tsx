@@ -4,7 +4,7 @@ import { NavigationDrawerSectionForObjectMetadataItemsSkeletonLoader } from '@/o
 import { useIsPrefetchLoading } from '@/prefetch/hooks/useIsPrefetchLoading';
 
 export const WorkspaceFavorites = ({
-  mobileNavigationDrawer ,
+  mobileNavigationDrawer,
 }: {
   mobileNavigationDrawer?: boolean;
 }) => {

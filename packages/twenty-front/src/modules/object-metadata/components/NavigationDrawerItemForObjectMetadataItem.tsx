@@ -6,19 +6,19 @@ import { NavigationDrawerItem } from '@/ui/navigation/navigation-drawer/componen
 import { NavigationDrawerItemsCollapsedContainer } from '@/ui/navigation/navigation-drawer/components/NavigationDrawerItemsCollapsedContainer';
 import { NavigationDrawerSubItem } from '@/ui/navigation/navigation-drawer/components/NavigationDrawerSubItem';
 import { getNavigationSubItemState } from '@/ui/navigation/navigation-drawer/utils/getNavigationSubItemState';
+import { useIsMobile } from '@/ui/utilities/responsive/hooks/useIsMobile';
 import { View } from '@/views/types/View';
 import { getObjectMetadataItemViews } from '@/views/utils/getObjectMetadataItemViews';
+import styled from '@emotion/styled';
 import { useLocation } from 'react-router-dom';
 import { useIcons } from 'twenty-ui';
-import styled from '@emotion/styled';
-import { useIsMobile } from '@/ui/utilities/responsive/hooks/useIsMobile';
 
 export type NavigationDrawerItemForObjectMetadataItemProps = {
   objectMetadataItem: ObjectMetadataItem;
-  mobileNavigationDrawer?:boolean;
+  mobileNavigationDrawer?: boolean;
 };
 
-const SubItemsWrapper = styled.div`
+const StyledSubItemsWrapper = styled.div`
   display: flex;
   flex-direction: ${() => (useIsMobile() ? 'row' : 'column')};
   gap: ${({ theme }) => theme.spacing(2)};
@@ -75,7 +75,7 @@ export const NavigationDrawerItemForObjectMetadataItem = ({
         mobileNavigationDrawer={mobileNavigationDrawer}
       />
       {shouldSubItemsBeDisplayed && (
-        <SubItemsWrapper>
+        <StyledSubItemsWrapper>
           {sortedObjectMetadataViews.map((view, index) => (
             <NavigationDrawerSubItem
               mobileNavigationDrawer={mobileNavigationDrawer}
@@ -91,7 +91,7 @@ export const NavigationDrawerItemForObjectMetadataItem = ({
               key={view.id}
             />
           ))}
-        </SubItemsWrapper>
+        </StyledSubItemsWrapper>
       )}
     </NavigationDrawerItemsCollapsedContainer>
   );

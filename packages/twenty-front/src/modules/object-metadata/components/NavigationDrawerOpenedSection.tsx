@@ -46,7 +46,8 @@ export const NavigationDrawerOpenedSection = ({
 
   return (
     shouldDisplayObjectInOpenedSection && (
-      <NavigationDrawerSectionForObjectMetadataItems mobileNavigationDrawer={mobileNavigationDrawer}
+      <NavigationDrawerSectionForObjectMetadataItems
+        mobileNavigationDrawer={mobileNavigationDrawer}
         sectionTitle={'Opened'}
         objectMetadataItems={[objectMetadataItem]}
         isRemote={false}

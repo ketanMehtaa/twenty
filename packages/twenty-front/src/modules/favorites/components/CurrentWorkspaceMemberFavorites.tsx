@@ -27,8 +27,7 @@ const StyledAvatar = styled(Avatar)`
     cursor: grab;
   }
 `;
-//todoketan
-const CurrentWorkspaceMemberFavoritesWrapper = styled.div<{
+const StyledCurrentWorkspaceMemberFavoritesWrapper = styled.div<{
   isMobile: boolean;
 }>`
   display: flex;
@@ -77,7 +76,7 @@ export const CurrentWorkspaceMemberFavorites = ({
     <DraggableList
       onDragEnd={handleReorderFavorite}
       draggableItems={
-        <CurrentWorkspaceMemberFavoritesWrapper isMobile={isMobile}>
+        <StyledCurrentWorkspaceMemberFavoritesWrapper isMobile={isMobile}>
           {currentWorkspaceMemberFavorites.map((favorite, index) => {
             const {
               id,
@@ -113,7 +112,7 @@ export const CurrentWorkspaceMemberFavorites = ({
               />
             );
           })}
-        </CurrentWorkspaceMemberFavoritesWrapper>
+        </StyledCurrentWorkspaceMemberFavoritesWrapper>
       }
     />
   );

@@ -29,9 +29,9 @@ export const NavigationDrawerAnimatedCollapseWrapper = ({
     mobileNavigationDrawer
       ? {
           opacity: 0,
-            width: 0,
-            height: 0,
-            pointerEvents: 'none',
+          width: 0,
+          height: 0,
+          pointerEvents: 'none',
         }
       : isNavigationDrawerExpanded
         ? {
