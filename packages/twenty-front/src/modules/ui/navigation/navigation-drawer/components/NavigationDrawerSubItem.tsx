@@ -17,6 +17,8 @@ export const NavigationDrawerSubItem = ({
   count,
   keyboard,
   subItemState,
+  rightOptions,
+  isDraggable,
 }: NavigationDrawerSubItemProps) => {
   return (
     <NavigationDrawerItem
@@ -33,6 +35,8 @@ export const NavigationDrawerSubItem = ({
       count={count}
       keyboard={keyboard}
       mobileNavigationDrawer={true}
+      rightOptions={rightOptions}
+      isDraggable={isDraggable}
     />
   );
 };

@@ -77,28 +77,24 @@ export const NavigationDrawerSectionForObjectMetadataItems = ({
   return (
     objectMetadataItems.length > 0 && (
       <NavigationDrawerSection>
-        {!isMobile && (
-          <NavigationDrawerAnimatedCollapseWrapper>
-            <NavigationDrawerSectionTitle
-              label={sectionTitle}
-              onClick={() => toggleNavigationSection()}
-            />
-          </NavigationDrawerAnimatedCollapseWrapper>
-        )}
-        <ScrollWrapper contextProviderName="navigationDrawer">
-          <StyledObjectsMetaDataItemsWrapper>
-            {isNavigationSectionOpen &&
-              objectMetadataItemsForNavigationItems.map(
-                (objectMetadataItem) => (
-                  <NavigationDrawerItemForObjectMetadataItem
-                    mobileNavigationDrawer={mobileNavigationDrawer}
-                    key={`navigation-drawer-item-${objectMetadataItem.id}`}
-                    objectMetadataItem={objectMetadataItem}
-                  />
-                ),
-              )}
-          </StyledObjectsMetaDataItemsWrapper>
-        </ScrollWrapper>
+        {!isMobile && (<>
+        <NavigationDrawerAnimatedCollapseWrapper>
+          <NavigationDrawerSectionTitle
+            label={sectionTitle}
+            onClick={() => toggleNavigationSection()}
+          />
+        </NavigationDrawerAnimatedCollapseWrapper>
+        <StyledObjectsMetaDataItemsWrapper>
+          {isNavigationSectionOpen &&
+            objectMetadataItemsForNavigationItems.map((objectMetadataItem) => (
+              <NavigationDrawerItemForObjectMetadataItem
+                mobileNavigationDrawer={mobileNavigationDrawer}
+                key={`navigation-drawer-item-${objectMetadataItem.id}`}
+                objectMetadataItem={objectMetadataItem}
+              />
+            ))}
+        </StyledObjectsMetaDataItemsWrapper>
+        </>)}
       </NavigationDrawerSection>
     )
   );

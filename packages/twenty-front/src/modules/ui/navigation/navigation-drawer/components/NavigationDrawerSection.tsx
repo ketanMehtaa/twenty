@@ -8,7 +8,6 @@ const StyledSection = styled.div`
   width: 100%;
   margin-bottom: ${({ theme }) => (useIsMobile() ? '' : theme.spacing(3))};
   flex-shrink: 1;
-  overflow: hidden;
 `;
 
 export { StyledSection as NavigationDrawerSection };
