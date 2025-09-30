@@ -1,0 +1,875 @@
+---
+title: Architecture Diagrams
+info: Visual representations of twenty-front architecture and component relationships
+icon: TbTopologyStarRing3
+image: /images/user-guide/fields/field.png
+---
+
+This document provides comprehensive visual diagrams to help you understand the twenty-front architecture, data flows, and component relationships.
+
+## System Architecture Diagram
+
+### Overall System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                            User Browser                              │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                       │
+│  ┌───────────────────────────────────────────────────────────────┐  │
+│  │                      twenty-front (React SPA)                  │  │
+│  │                                                                 │  │
+│  │  ┌──────────────┐  ┌─────────────────┐  ┌─────────────────┐  │  │
+│  │  │   Pages      │  │   Modules        │  │   UI Library    │  │  │
+│  │  │              │  │   (51 modules)   │  │   (twenty-ui)   │  │  │
+│  │  │ - Auth       │  │ - object-record  │  │ - field/        │  │  │
+│  │  │ - Records    │  │ - activities     │  │ - layout/       │  │  │
+│  │  │ - Settings   │  │ - workflow       │  │ - navigation/   │  │  │
+│  │  └──────┬───────┘  └────────┬─────────┘  └────────┬────────┘  │  │
+│  │         │                   │                     │            │  │
+│  │         └───────────────────┼─────────────────────┘            │  │
+│  │                             │                                  │  │
+│  │         ┌───────────────────▼─────────────────────┐            │  │
+│  │         │     State Management Layer               │            │  │
+│  │         │  ┌─────────────┐  ┌──────────────────┐  │            │  │
+│  │         │  │   Recoil    │  │  Apollo Cache    │  │            │  │
+│  │         │  │  (Atoms &   │  │  (GraphQL Data)  │  │            │  │
+│  │         │  │  Selectors) │  │                  │  │            │  │
+│  │         │  └─────────────┘  └──────────────────┘  │            │  │
+│  │         └───────────────────┬─────────────────────┘            │  │
+│  │                             │                                  │  │
+│  │         ┌───────────────────▼─────────────────────┐            │  │
+│  │         │     Data Access Layer                    │            │  │
+│  │         │  ┌─────────────────────────────────────┐ │            │  │
+│  │         │  │   Apollo Client (GraphQL)           │ │            │  │
+│  │         │  │   - Queries                         │ │            │  │
+│  │         │  │   - Mutations                       │ │            │  │
+│  │         │  │   - Subscriptions                   │ │            │  │
+│  │         │  │   - Cache Management                │ │            │  │
+│  │         │  └─────────────────────────────────────┘ │            │  │
+│  │         └───────────────────┬─────────────────────┘            │  │
+│  └─────────────────────────────┼──────────────────────────────────┘  │
+│                                │                                      │
+└────────────────────────────────┼──────────────────────────────────────┘
+                                 │
+                                 │ HTTPS/GraphQL
+                                 │
+┌────────────────────────────────▼──────────────────────────────────────┐
+│                        Backend Services                                │
+├────────────────────────────────────────────────────────────────────────┤
+│  ┌──────────────────────────────────────────────────────────────────┐ │
+│  │                    twenty-server (NestJS)                         │ │
+│  │                                                                    │ │
+│  │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │ │
+│  │  │  GraphQL API    │  │  Core Modules   │  │  Engine Modules │  │ │
+│  │  │  (Yoga)         │  │  - Workflow     │  │  - Metadata     │  │ │
+│  │  │                 │  │  - Calendar     │  │  - Data Source  │  │ │
+│  │  └────────┬────────┘  └────────┬────────┘  └────────┬────────┘  │ │
+│  │           │                    │                     │           │ │
+│  │           └────────────────────┼─────────────────────┘           │ │
+│  │                                │                                 │ │
+│  │  ┌─────────────────────────────▼─────────────────────────────┐  │ │
+│  │  │              Database Layer (TypeORM)                      │  │ │
+│  │  └─────────────────────────────┬─────────────────────────────┘  │ │
+│  └────────────────────────────────┼────────────────────────────────┘ │
+└────────────────────────────────────┼────────────────────────────────────┘
+                                     │
+                                     ▼
+                        ┌──────────────────────────┐
+                        │  PostgreSQL Database     │
+                        └──────────────────────────┘
+```
+
+## Component Hierarchy
+
+### Application Component Tree
+
+```
+App
+├── AppRouterProviders
+│   ├── RecoilRoot                    # State management root
+│   ├── ApolloProvider                # GraphQL client provider
+│   ├── ThemeProvider                 # Theming system
+│   └── ClientConfigProvider          # App configuration
+│
+└── AppRouter
+    ├── AuthRoutes                    # Unauthenticated routes
+    │   ├── /sign-in → SignIn
+    │   ├── /sign-up → SignUp
+    │   └── /verify → Verify
+    │
+    ├── AuthenticatedRoutes           # Protected routes
+    │   ├── AppLayout
+    │   │   ├── NavigationDrawer      # Left sidebar navigation
+    │   │   ├── MainContent           # Main content area
+    │   │   └── RightDrawer           # Right sidebar (contextual)
+    │   │
+    │   ├── /objects/:objectSlug      # Dynamic object routes
+    │   │   └── RecordIndex
+    │   │       ├── RecordTable       # Table view
+    │   │       ├── RecordBoard       # Kanban view
+    │   │       └── RecordCalendar    # Calendar view
+    │   │
+    │   ├── /objects/:objectSlug/:recordId
+    │   │   └── RecordShow
+    │   │       ├── RecordShowContainer
+    │   │       ├── RecordFieldsSection
+    │   │       ├── RecordActivitySection
+    │   │       └── RecordRelationsSection
+    │   │
+    │   └── /settings/*
+    │       └── SettingsRoutes
+    │           ├── /profile → Profile
+    │           ├── /workspace → Workspace
+    │           ├── /integrations → Integrations
+    │           └── /developers → Developers
+    │
+    └── CommandMenu                   # Global command palette (Cmd+K)
+```
+
+## Module Architecture
+
+### Feature Module Structure Diagram
+
+```
+┌────────────────────────────────────────────────────────┐
+│                   Feature Module                       │
+│                  (e.g., object-record)                 │
+├────────────────────────────────────────────────────────┤
+│                                                         │
+│  ┌──────────────────────────────────────────────────┐ │
+│  │  Presentation Layer                               │ │
+│  │  ┌──────────────┐  ┌──────────────────────────┐  │ │
+│  │  │ components/  │  │ - React Components       │  │ │
+│  │  │              │  │ - TSX files              │  │ │
+│  │  │              │  │ - Styled components      │  │ │
+│  │  └──────────────┘  └──────────────────────────┘  │ │
+│  └──────────────────────┬───────────────────────────┘ │
+│                         │                             │
+│  ┌──────────────────────▼───────────────────────────┐ │
+│  │  Business Logic Layer                            │ │
+│  │  ┌──────────────┐  ┌──────────────────────────┐ │ │
+│  │  │ hooks/       │  │ - Custom React hooks     │ │ │
+│  │  │              │  │ - Feature logic          │ │ │
+│  │  │ utils/       │  │ - Pure functions         │ │ │
+│  │  │              │  │ - Business rules         │ │ │
+│  │  └──────────────┘  └──────────────────────────┘ │ │
+│  └──────────────────────┬───────────────────────────┘ │
+│                         │                             │
+│  ┌──────────────────────▼───────────────────────────┐ │
+│  │  State Management Layer                          │ │
+│  │  ┌──────────────┐  ┌──────────────────────────┐ │ │
+│  │  │ states/      │  │ - Recoil atoms           │ │ │
+│  │  │              │  │ - Selectors              │ │ │
+│  │  │ contexts/    │  │ - React contexts         │ │ │
+│  │  │              │  │ - Component instances    │ │ │
+│  │  └──────────────┘  └──────────────────────────┘ │ │
+│  └──────────────────────┬───────────────────────────┘ │
+│                         │                             │
+│  ┌──────────────────────▼───────────────────────────┐ │
+│  │  Data Access Layer                               │ │
+│  │  ┌──────────────┐  ┌──────────────────────────┐ │ │
+│  │  │ graphql/     │  │ - Queries                │ │ │
+│  │  │  fragments/  │  │ - Mutations              │ │ │
+│  │  │  queries/    │  │ - Fragments              │ │ │
+│  │  │  mutations/  │  │ - Subscriptions          │ │ │
+│  │  └──────────────┘  └──────────────────────────┘ │ │
+│  └──────────────────────┬───────────────────────────┘ │
+│                         │                             │
+│  ┌──────────────────────▼───────────────────────────┐ │
+│  │  Type Definitions                                │ │
+│  │  ┌──────────────┐  ┌──────────────────────────┐ │ │
+│  │  │ types/       │  │ - TypeScript types       │ │ │
+│  │  │              │  │ - Interfaces             │ │ │
+│  │  │ constants/   │  │ - Constants              │ │ │
+│  │  │              │  │ - Enums                  │ │ │
+│  │  └──────────────┘  └──────────────────────────┘ │ │
+│  └────────────────────────────────────────────────┘ │
+│                                                       │
+└───────────────────────────────────────────────────────┘
+```
+
+## Data Flow Diagrams
+
+### GraphQL Query Flow
+
+```
+┌──────────────┐
+│  Component   │ User opens record list page
+│  (RecordIndex)│
+└──────┬───────┘
+       │
+       │ 1. Component renders
+       │
+       ▼
+┌──────────────────────┐
+│  Custom Hook         │
+│  (useFindManyRecords)│
+└──────┬───────────────┘
+       │
+       │ 2. Execute GraphQL query
+       │
+       ▼
+┌──────────────────────┐
+│  Apollo Client       │
+│  - Check cache first │
+└──────┬───────────────┘
+       │
+       ├─── Cache hit? ──────────────────────┐
+       │                                     │
+       │ No                              Yes │
+       │                                     │
+       ▼                                     │
+┌──────────────────────┐                    │
+│  Network Request     │                    │
+│  POST /graphql       │                    │
+│  {                   │                    │
+│    query: "..."      │                    │
+│    variables: {...}  │                    │
+│  }                   │                    │
+└──────┬───────────────┘                    │
+       │                                     │
+       │ 3. Server processes                │
+       │                                     │
+       ▼                                     │
+┌──────────────────────┐                    │
+│  twenty-server       │                    │
+│  GraphQL Resolver    │                    │
+└──────┬───────────────┘                    │
+       │                                     │
+       │ 4. Database query                  │
+       │                                     │
+       ▼                                     │
+┌──────────────────────┐                    │
+│  PostgreSQL          │                    │
+│  SELECT * FROM ...   │                    │
+└──────┬───────────────┘                    │
+       │                                     │
+       │ 5. Return data                     │
+       │                                     │
+       ▼                                     │
+┌──────────────────────┐                    │
+│  Network Response    │                    │
+│  {                   │                    │
+│    data: {...}       │                    │
+│  }                   │                    │
+└──────┬───────────────┘                    │
+       │                                     │
+       │ 6. Update cache                    │
+       │                                     │
+       ▼                                     │
+┌──────────────────────┐                    │
+│  Apollo Cache        │◄───────────────────┘
+│  - Normalize data    │
+│  - Store in cache    │
+└──────┬───────────────┘
+       │
+       │ 7. Trigger re-render
+       │
+       ▼
+┌──────────────────────┐
+│  Component Update    │
+│  - Receive data      │
+│  - Render UI         │
+└──────────────────────┘
+```
+
+### Mutation Flow with Optimistic Updates
+
+```
+┌──────────────┐
+│  Component   │ User clicks "Update" button
+│  (RecordField)│
+└──────┬───────┘
+       │
+       │ 1. Handle click event
+       │
+       ▼
+┌───────────────────────┐
+│  Event Handler        │
+│  (handleFieldUpdate)  │
+└──────┬────────────────┘
+       │
+       │ 2. Call mutation hook
+       │
+       ▼
+┌───────────────────────┐
+│  Custom Hook          │
+│  (useUpdateOneRecord) │
+└──────┬────────────────┘
+       │
+       │ 3. Execute mutation with optimistic response
+       │
+       ▼
+┌─────────────────────────────┐
+│  Apollo Client              │
+│                             │
+│  1. Apply optimistic update │◄── Immediate UI feedback
+│     to cache                │
+└──────┬──────────────────────┘
+       │
+       │ 4. Send network request
+       │
+       ▼
+┌──────────────────────┐
+│  Network Request     │
+│  POST /graphql       │
+│  {                   │
+│    mutation: "..."   │
+│    variables: {...}  │
+│  }                   │
+└──────┬───────────────┘
+       │
+       │ 5. Server processes
+       │
+       ▼
+┌──────────────────────┐
+│  twenty-server       │
+│  GraphQL Resolver    │
+│  - Validate input    │
+│  - Apply business    │
+│    logic             │
+└──────┬───────────────┘
+       │
+       │ 6. Database update
+       │
+       ▼
+┌──────────────────────┐
+│  PostgreSQL          │
+│  UPDATE ... SET ...  │
+└──────┬───────────────┘
+       │
+       │ 7. Return updated data
+       │
+       ▼
+┌──────────────────────┐
+│  Network Response    │
+│  {                   │
+│    data: {...}       │
+│  }                   │
+└──────┬───────────────┘
+       │
+       │ 8. Replace optimistic data with real data
+       │
+       ▼
+┌─────────────────────────────┐
+│  Apollo Cache               │
+│  - Remove optimistic update │
+│  - Store real data          │
+│  - Trigger re-render        │
+└──────┬──────────────────────┘
+       │
+       ▼
+┌──────────────────────┐
+│  Component Update    │
+│  - Confirm success   │
+│  - Show notification │
+└──────────────────────┘
+```
+
+### State Update Flow (Recoil)
+
+```
+┌──────────────┐
+│  Component A │ User types in input field
+└──────┬───────┘
+       │
+       │ 1. Handle input change
+       │
+       ▼
+┌───────────────────────┐
+│  Event Handler        │
+│  (handleInputChange)  │
+└──────┬────────────────┘
+       │
+       │ 2. Update Recoil atom
+       │
+       ▼
+┌─────────────────────────────────┐
+│  Recoil State                   │
+│  setFieldValue(newValue)        │
+│                                 │
+│  fieldValueState = newValue     │
+└──────┬──────────────────────────┘
+       │
+       │ 3. Notify all subscribers
+       │
+       ├────────────┬────────────┬──────────┐
+       │            │            │          │
+       ▼            ▼            ▼          ▼
+┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐
+│Component │ │Component │ │ Selector │ │Component │
+│    A     │ │    B     │ │ (derived)│ │    C     │
+│(input)   │ │(display) │ │          │ │(save btn)│
+└──────────┘ └──────────┘ └─────┬────┘ └──────────┘
+                                 │
+       ┌─────────────────────────┘
+       │
+       │ 4. Selector computes derived state
+       │
+       ▼
+┌─────────────────────────────┐
+│  Selector                   │
+│  isFieldValid = validate()  │
+└──────┬──────────────────────┘
+       │
+       │ 5. Notify selector subscribers
+       │
+       ▼
+┌──────────────────┐
+│  Component D     │
+│  (validation UI) │
+└──────────────────┘
+```
+
+## UI Component Architecture
+
+### Field Component System
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                  Field Component Hierarchy                   │
+└─────────────────────────────────────────────────────────────┘
+
+                    ┌──────────────────┐
+                    │  RecordField     │ (Smart Component)
+                    │  - Field logic   │
+                    │  - Metadata      │
+                    └────────┬─────────┘
+                             │
+                ┌────────────┴────────────┐
+                │                         │
+                ▼                         ▼
+    ┌──────────────────┐      ┌──────────────────┐
+    │  FieldDisplay    │      │   FieldInput     │
+    │  (Read mode)     │      │   (Edit mode)    │
+    └────────┬─────────┘      └────────┬─────────┘
+             │                         │
+             │                         │
+     ┌───────┴────────┐        ┌───────┴────────┐
+     │                │        │                │
+     ▼                ▼        ▼                ▼
+┌─────────┐    ┌─────────┐  ┌─────────┐  ┌─────────┐
+│ Text    │    │ Email   │  │ Text    │  │ Email   │
+│ Display │    │ Display │  │ Input   │  │ Input   │
+└─────────┘    └─────────┘  └─────────┘  └─────────┘
+┌─────────┐    ┌─────────┐  ┌─────────┐  ┌─────────┐
+│ Number  │    │ Date    │  │ Number  │  │ Date    │
+│ Display │    │ Display │  │ Input   │  │ Picker  │
+└─────────┘    └─────────┘  └─────────┘  └─────────┘
+┌─────────┐    ┌─────────┐  ┌─────────┐  ┌─────────┐
+│ Boolean │    │ Select  │  │ Checkbox│  │ Select  │
+│ Display │    │ Display │  │ Input   │  │ Input   │
+└─────────┘    └─────────┘  └─────────┘  └─────────┘
+     ...            ...          ...          ...
+```
+
+### Record Table Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    RecordTable                          │
+│  (Container component for record list table)            │
+└───────────────┬─────────────────────────────────────────┘
+                │
+                ├──► RecordTableContextProvider
+                │    (Provides table instance context)
+                │
+                ├──► RecordTableHeader
+                │    │
+                │    ├──► RecordTableHeaderCell (for each column)
+                │    │    ├── Field name
+                │    │    ├── Sort indicator
+                │    │    └── Resize handle
+                │    │
+                │    └──► RecordTableHeaderActions
+                │         ├── Add column button
+                │         └── Table settings
+                │
+                ├──► RecordTableBody
+                │    │
+                │    ├──► RecordTableRow (for each record)
+                │    │    │
+                │    │    ├──► RecordTableCell (for each field)
+                │    │    │    │
+                │    │    │    ├──► RecordTableCellContainer
+                │    │    │    │    ├── Click handling
+                │    │    │    │    └── Edit mode toggle
+                │    │    │    │
+                │    │    │    └──► FieldDisplay / FieldInput
+                │    │    │         (Renders appropriate field type)
+                │    │    │
+                │    │    └──► RecordTableCellActions
+                │    │         (Row actions on hover)
+                │    │
+                │    └──► RecordTableBodyLoading
+                │         (Skeleton loading state)
+                │
+                └──► RecordTableFooter
+                     ├── Pagination
+                     ├── Total count
+                     └── Items per page selector
+```
+
+## Navigation Flow
+
+### User Navigation Journey
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    User Navigates Application               │
+└─────────────────────────────────────────────────────────────┘
+
+Start: User lands on application
+  │
+  ├─ Not authenticated?
+  │  │
+  │  └──► /sign-in
+  │      │
+  │      ├─ User signs in
+  │      │
+  │      └──► Redirect to intended page or /objects/companies
+  │
+  └─ Authenticated?
+     │
+     ├──► Default: /objects/companies (Companies list)
+     │    │
+     │    ├─ User clicks "Add Filter"
+     │    │  └──► Opens filter dropdown (no navigation)
+     │    │
+     │    ├─ User clicks on a company
+     │    │  └──► /objects/companies/:recordId (Company detail)
+     │    │      │
+     │    │      ├─ Right drawer opens with activity feed
+     │    │      │
+     │    │      └─ User clicks "Add Activity"
+     │    │         └──► Opens activity modal (no navigation)
+     │    │
+     │    └─ User clicks "Settings" in sidebar
+     │       └──► /settings/profile
+     │
+     ├──► /objects/people (People list)
+     │    └─ Similar navigation as companies
+     │
+     ├──► /objects/opportunities (Deals/Opportunities)
+     │    ├─ Board view (Kanban)
+     │    └─ Table view
+     │
+     ├──► /settings/...
+     │    ├─ /settings/profile (User profile)
+     │    ├─ /settings/workspace (Workspace settings)
+     │    ├─ /settings/integrations (Integrations)
+     │    ├─ /settings/data-model (Database schema)
+     │    └─ /settings/developers (API & Webhooks)
+     │
+     └──► Command Menu (Cmd+K)
+          ├─ Quick search across all records
+          ├─ Quick actions (Create record, etc.)
+          └─ Navigation shortcuts
+```
+
+## Module Dependency Graph
+
+### Core Module Dependencies
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│              Module Dependency Relationships                  │
+└──────────────────────────────────────────────────────────────┘
+
+                         ┌─────────┐
+                         │   ui/   │ (No dependencies)
+                         └────┬────┘
+                              │
+                ┌─────────────┼─────────────┐
+                │             │             │
+                ▼             ▼             ▼
+         ┌──────────┐  ┌──────────┐  ┌──────────┐
+         │ object-  │  │activities│  │workflow  │
+         │ metadata │  └──────────┘  └──────────┘
+         └────┬─────┘
+              │
+              ▼
+         ┌──────────┐
+         │ object-  │
+         │ record   │ (Depends on object-metadata)
+         └────┬─────┘
+              │
+    ┌─────────┼─────────┐
+    │         │         │
+    ▼         ▼         ▼
+┌────────┐ ┌────────┐ ┌────────┐
+│companies│ │people  │ │opport- │
+│        │ │        │ │unities │
+└────────┘ └────────┘ └────────┘
+
+Legend:
+───▶ "depends on" relationship
+```
+
+### Layered Architecture
+
+```
+┌────────────────────────────────────────────────────┐
+│  Layer 1: Presentation (Pages)                     │
+│  - Auth pages                                      │
+│  - Object record pages                             │
+│  - Settings pages                                  │
+└───────────────────┬────────────────────────────────┘
+                    │ uses
+                    ▼
+┌────────────────────────────────────────────────────┐
+│  Layer 2: Feature Modules                          │
+│  - object-record (core features)                   │
+│  - activities (tasks, notes, emails)               │
+│  - workflow (automation)                           │
+│  - settings (configuration)                        │
+└───────────────────┬────────────────────────────────┘
+                    │ uses
+                    ▼
+┌────────────────────────────────────────────────────┐
+│  Layer 3: UI Components (twenty-ui)                │
+│  - field/ (display & input components)             │
+│  - layout/ (modal, drawer, dropdown)               │
+│  - navigation/ (menu, breadcrumbs)                 │
+│  - feedback/ (snackbar, dialog)                    │
+└───────────────────┬────────────────────────────────┘
+                    │ uses
+                    ▼
+┌────────────────────────────────────────────────────┐
+│  Layer 4: Foundation                               │
+│  - Theme system                                    │
+│  - Utilities (state, hooks)                        │
+│  - Type definitions                                │
+└────────────────────────────────────────────────────┘
+```
+
+## Build & Deploy Architecture
+
+### Development Build Flow
+
+```
+┌──────────────┐
+│ Developer    │
+│ runs command │
+│ yarn start   │
+└──────┬───────┘
+       │
+       ▼
+┌────────────────────────┐
+│  Vite Dev Server       │
+│  (Port 3001)           │
+│  - Fast HMR            │
+│  - On-demand transform │
+└──────┬─────────────────┘
+       │
+       ├──► TypeScript compilation (on-demand)
+       │
+       ├──► ESLint checking (optional)
+       │
+       ├──► Lingui i18n compilation
+       │
+       └──► Serve to browser
+            │
+            └──► Browser connects via WebSocket
+                 - Hot Module Replacement
+                 - Instant updates
+```
+
+### Production Build Flow
+
+```
+┌──────────────┐
+│  Build       │
+│  Process     │
+│  yarn build  │
+└──────┬───────┘
+       │
+       ▼
+┌─────────────────────────┐
+│  Vite Build Pipeline    │
+└──────┬──────────────────┘
+       │
+       ├──► 1. TypeScript compilation
+       │    (Full type checking)
+       │
+       ├──► 2. Bundle optimization
+       │    - Tree shaking
+       │    - Code splitting
+       │    - Minification
+       │
+       ├──► 3. Asset optimization
+       │    - Image compression
+       │    - CSS extraction
+       │    - Font optimization
+       │
+       ├──► 4. Chunk size validation
+       │    - Main chunk: max 5.3MB
+       │    - Other chunks: max 5MB
+       │
+       └──► 5. Generate build/
+            ├── index.html
+            ├── assets/
+            │   ├── index-[hash].js
+            │   ├── vendor-[hash].js
+            │   └── [chunk]-[hash].js
+            └── stats.html (bundle analysis)
+```
+
+## Security Architecture
+
+### Authentication Flow
+
+```
+┌──────────────┐
+│  User        │
+│  Attempts    │
+│  Sign In     │
+└──────┬───────┘
+       │
+       ▼
+┌────────────────────────┐
+│  SignIn Component      │
+│  - Email/Password form │
+│  - OAuth buttons       │
+└──────┬─────────────────┘
+       │
+       ├─ Email/Password ─────────────────┐
+       │                                   │
+       ▼                                   ▼
+┌────────────────────────┐      ┌────────────────────────┐
+│  POST /auth/sign-in    │      │  OAuth Flow            │
+│  {email, password}     │      │  (Google, Microsoft)   │
+└──────┬─────────────────┘      └──────┬─────────────────┘
+       │                               │
+       │                               │
+       └───────────┬───────────────────┘
+                   │
+                   ▼
+         ┌──────────────────────┐
+         │  twenty-server       │
+         │  Auth Validation     │
+         └──────┬───────────────┘
+                │
+                │ Valid?
+                │
+                ├─ Yes ────────────────┐
+                │                      │
+                ▼                      │
+       ┌─────────────────┐            │
+       │ Generate Tokens │            │
+       │ - Access Token  │            │
+       │ - Refresh Token │            │
+       └────────┬────────┘            │
+                │                     │
+                ▼                     │
+       ┌─────────────────┐            │
+       │ Return to Client│            │
+       │ - Set cookies   │            │
+       │ - Store in      │            │
+       │   localStorage  │            │
+       └────────┬────────┘            │
+                │                     │
+                ▼                     │
+       ┌─────────────────┐            │
+       │ Redirect to App │            │
+       │ /objects/...    │            │
+       └─────────────────┘            │
+                                      │
+                                      │ No
+                                      │
+                                      ▼
+                             ┌─────────────────┐
+                             │ Show Error      │
+                             │ Stay on sign-in │
+                             └─────────────────┘
+```
+
+### API Request Authentication
+
+```
+┌──────────────┐
+│  Component   │
+│  Makes API   │
+│  Request     │
+└──────┬───────┘
+       │
+       ▼
+┌─────────────────────────┐
+│  Apollo Client          │
+│  HTTP Link              │
+└──────┬──────────────────┘
+       │
+       │ Add headers
+       │
+       ▼
+┌─────────────────────────────────┐
+│  Request Headers                │
+│  - Authorization: Bearer <token>│
+│  - X-Workspace-Id: <id>         │
+└──────┬──────────────────────────┘
+       │
+       ▼
+┌─────────────────────────┐
+│  Network Request        │
+│  POST /graphql          │
+└──────┬──────────────────┘
+       │
+       ▼
+┌─────────────────────────┐
+│  twenty-server          │
+│  Auth Guard             │
+│  - Validate token       │
+│  - Check workspace      │
+│  - Check permissions    │
+└──────┬──────────────────┘
+       │
+       ├─ Valid? ──► Process request ──► Return data
+       │
+       └─ Invalid? ──► Return 401 ──► Redirect to sign-in
+```
+
+## Performance Optimization
+
+### Code Splitting Strategy
+
+```
+┌─────────────────────────────────────────────────────┐
+│  Initial Bundle (index.html)                        │
+│  - React runtime                                    │
+│  - Router                                           │
+│  - Apollo Client                                    │
+│  - Recoil                                           │
+│  - Core UI components                               │
+│  Total: ~5.3MB (compressed)                         │
+└─────────────────────────────────────────────────────┘
+              │
+              ├──► Lazy load on route navigation
+              │
+              ▼
+    ┌──────────────────────┐
+    │  Route-based chunks  │
+    │  - /auth → auth.js   │
+    │  - /settings → ...   │
+    │  - /objects → ...    │
+    └──────────────────────┘
+              │
+              ├──► Lazy load on user interaction
+              │
+              ▼
+    ┌──────────────────────┐
+    │  Feature chunks      │
+    │  - DatePicker        │
+    │  - RichTextEditor    │
+    │  - ChartLibrary      │
+    └──────────────────────┘
+```
+
+## Related Documentation
+
+- [Architecture Overview](/developers/frontend-development/architecture-overview) - Detailed architecture explanation
+- [Folder Architecture](/developers/frontend-development/folder-architecture-front) - Folder structure details
+- [Best Practices](/developers/frontend-development/best-practices-front) - Development guidelines
+- [Style Guide](/developers/frontend-development/style-guide) - Code style rules
+
+<ArticleEditContent></ArticleEditContent>
