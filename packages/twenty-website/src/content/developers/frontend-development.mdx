@@ -4,3 +4,73 @@ icon: TbTerminal2
 image: /images/user-guide/create-workspace/workspace-cover.png
 info: Storybook, Figma, React Best Practices...
 ---
+
+Welcome to the Twenty frontend development documentation! This section covers everything you need to know about developing the frontend of the Twenty CRM application.
+
+## Architecture & Design
+
+Learn about the architecture, structure, and design patterns used in twenty-front:
+
+- **[Architecture Overview](/developers/frontend-development/architecture-overview)** - Comprehensive guide to the frontend architecture, technology stack, and core patterns
+- **[Architecture Diagrams](/developers/frontend-development/architecture-diagrams)** - Visual representations of the architecture, data flows, and component relationships
+- **[Folder Architecture](/developers/frontend-development/folder-architecture-front)** - Detailed explanation of the folder structure and organization
+
+## Development Guidelines
+
+Best practices and guidelines for writing quality code:
+
+- **[Best Practices](/developers/frontend-development/best-practices-front)** - State management, re-renders, naming conventions, and more
+- **[Style Guide](/developers/frontend-development/style-guide)** - Code style rules, TypeScript conventions, and styling patterns
+- **[Frontend Commands](/developers/frontend-development/frontend-commands)** - Essential CLI commands for development, testing, and building
+
+## Tools & Workflow
+
+Learn about the tools and workflows used in development:
+
+- **[Work with Figma](/developers/frontend-development/work-with-figma)** - Design-to-code workflow with Figma
+- **[Hotkeys](/developers/frontend-development/hotkeys)** - Keyboard shortcuts and command palette usage
+
+## Quick Start
+
+```bash
+# Install dependencies
+yarn install
+
+# Start the development server
+npx nx start twenty-front
+
+# Run tests
+npx nx test twenty-front
+
+# Lint code
+npx nx lint twenty-front
+
+# Build for production
+npx nx build twenty-front
+```
+
+## Key Concepts
+
+### Modular Architecture
+Twenty-front follows a feature-based modular architecture where each module represents a business feature with its own components, hooks, state, and GraphQL operations.
+
+### State Management
+The application uses Recoil for state management, providing atomic state updates and derived state through selectors. Apollo Client manages server data and caching.
+
+### Type Safety
+Comprehensive TypeScript coverage ensures type safety across the codebase. GraphQL types are automatically generated from the schema.
+
+### Component System
+UI components are organized in the `ui/` module and are completely independent of business logic, making them reusable and easy to test.
+
+## Technology Stack
+
+- **React 18** - Modern React with hooks and concurrent features
+- **TypeScript** - Type-safe JavaScript
+- **Vite** - Fast build tool with HMR
+- **Recoil** - State management
+- **Apollo Client** - GraphQL client
+- **Emotion** - CSS-in-JS styling
+- **Storybook** - Component development and documentation
+
+For more detailed information, start with the [Architecture Overview](/developers/frontend-development/architecture-overview).
