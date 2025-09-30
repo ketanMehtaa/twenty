@@ -29,6 +29,7 @@ export const DOCS_INDEX = {
       { fileName: 'server-commands' },
       { fileName: 'feature-flags' },
       { fileName: 'folder-architecture-server' },
+      { fileName: 'backend-modules' },
       { fileName: 'zapier' },
       { fileName: 'best-practices-server' },
       { fileName: 'custom-objects' },
