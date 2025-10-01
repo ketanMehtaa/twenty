@@ -1,26 +1,3 @@
----
-title: Twenty Docker Architecture
-icon: TbBrandDocker
-image: /images/user-guide/objects/objects.png
----
-
-This guide provides a comprehensive overview of the Twenty Docker package architecture, including all components, build processes, deployment options, and configuration details.
-
-## Overview
-
-The `twenty-docker` package is the containerization layer for the Twenty CRM application. It provides production-ready Docker images and deployment configurations for running Twenty in various environments. The package is located at `packages/twenty-docker` in the Twenty monorepo.
-
-### Key Components
-
-The twenty-docker package consists of:
-
-- **Docker Images**: Pre-built images for the application, database, and website
-- **Deployment Configurations**: Docker Compose, Kubernetes (k8s), and Podman setups
-- **Build System**: Makefile-based build orchestration
-- **Scripts**: Installation and setup automation
-- **Monitoring**: Grafana and OpenTelemetry configurations
-
-## Architecture Diagram
 
 ```mermaid
 graph TB
@@ -987,4 +964,4 @@ The twenty-docker package provides:
 
 For most users, **Docker Compose** provides the simplest and most reliable deployment method.
 
-<ArticleEditContent></ArticleEditContent>
+---\n\n*This Docker architecture documentation is maintained to help you deploy and manage Twenty in containerized environments.*

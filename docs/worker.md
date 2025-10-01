@@ -1,21 +1,21 @@
-# Twenty Workers
+# ⚡ Twenty Workers
 
-## Overview
+## 🌟 Overview
 
 Twenty Workers is the background job processing system for the Twenty CRM application. It handles asynchronous tasks, scheduled jobs, and long-running operations separately from the main API server to ensure optimal performance and scalability.
 
-## What are Twenty Workers?
+## 🤔 What are Twenty Workers?
 
 Twenty Workers are separate Node.js processes that consume and execute jobs from Redis-backed message queues. They operate independently from the main Twenty server, allowing for:
 
-- **Asynchronous Processing**: Offload time-consuming tasks from HTTP request/response cycles
-- **Scalability**: Scale workers independently based on workload
-- **Reliability**: Retry failed jobs automatically with configurable strategies
-- **Resource Isolation**: Prevent heavy background tasks from affecting API responsiveness
+- **⚡ Asynchronous Processing**: Offload time-consuming tasks from HTTP request/response cycles
+- **📈 Scalability**: Scale workers independently based on workload  
+- **🔄 Reliability**: Retry failed jobs automatically with configurable strategies
+- **🔐 Resource Isolation**: Prevent heavy background tasks from affecting API responsiveness
 
-## Architecture
+## 🏗️ Architecture
 
-### High-Level Architecture
+### 🏛️ High-Level Architecture
 
 ```mermaid
 graph TB

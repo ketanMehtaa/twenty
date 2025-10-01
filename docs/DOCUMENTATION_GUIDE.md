@@ -1,16 +1,18 @@
-# Twenty Project Documentation Guide
+# 📚 Twenty Project Documentation Guide
+
+> **Your Complete Navigation Guide to Twenty's Documentation**
 
 Welcome to the comprehensive documentation for the Twenty CRM project! This guide will help you navigate through the documentation and find the information you need.
 
-## 📚 Documentation Overview
+## 🌟 Documentation Overview
 
 This repository contains extensive documentation covering all aspects of the Twenty project. Whether you're a new contributor, a developer working with the codebase, or someone interested in understanding the architecture, you'll find detailed information here.
 
 ## 🗂️ Documentation Structure
 
-### Core Documentation Files
+### 📋 Core Documentation Files
 
-1. **[PROJECT_OVERVIEW.md](./PROJECT_OVERVIEW.md)** - Start here!
+1. **[🚀 PROJECT_OVERVIEW.md](./PROJECT_OVERVIEW.md)** - Start here!
    - Complete overview of the Twenty project
    - High-level architecture diagrams
    - Monorepo structure explanation
@@ -19,7 +21,7 @@ This repository contains extensive documentation covering all aspects of the Twe
    - Development workflow guide
    - Links to all other resources
 
-2. **[FRONTEND_ARCHITECTURE.md](./FRONTEND_ARCHITECTURE.md)** - Frontend deep dive
+2. **[🎨 FRONTEND_ARCHITECTURE.md](./FRONTEND_ARCHITECTURE.md)** - Frontend deep dive
    - React application structure
    - Module-based architecture
    - State management with Recoil
@@ -29,7 +31,7 @@ This repository contains extensive documentation covering all aspects of the Twe
    - Component library (UI module)
    - Development guidelines and best practices
 
-3. **[BACKEND_ARCHITECTURE.md](./BACKEND_ARCHITECTURE.md)** - Backend deep dive
+3. **[⚙️ BACKEND_ARCHITECTURE.md](./BACKEND_ARCHITECTURE.md)** - Backend deep dive
    - NestJS application structure
    - Core engine architecture
    - Dynamic metadata system
@@ -41,13 +43,13 @@ This repository contains extensive documentation covering all aspects of the Twe
 
 ## 🎯 Quick Start Guide
 
-### For New Contributors
+### 👋 For New Contributors
 
-1. **Read [PROJECT_OVERVIEW.md](./PROJECT_OVERVIEW.md)** to understand the overall architecture
+1. **Read [🚀 PROJECT_OVERVIEW.md](./PROJECT_OVERVIEW.md)** to understand the overall architecture
 2. **Set up your development environment** following the [Development Workflow](./PROJECT_OVERVIEW.md#development-workflow) section
 3. **Read the specific architecture docs** based on what you'll be working on:
-   - Frontend work? → [FRONTEND_ARCHITECTURE.md](./FRONTEND_ARCHITECTURE.md)
-   - Backend work? → [BACKEND_ARCHITECTURE.md](./BACKEND_ARCHITECTURE.md)
+   - Frontend work? → [🎨 FRONTEND_ARCHITECTURE.md](./FRONTEND_ARCHITECTURE.md)
+   - Backend work? → [⚙️ BACKEND_ARCHITECTURE.md](./BACKEND_ARCHITECTURE.md)
 
 ### For Frontend Developers
 
@@ -65,25 +67,25 @@ This repository contains extensive documentation covering all aspects of the Twe
 
 ## 📖 Detailed Documentation
 
-### Project Architecture
+### 🏗️ Project Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      Twenty Platform                         │
+│                    🚀 Twenty Platform                       │
 ├─────────────────────────────────────────────────────────────┤
-│                                                              │
+│                                                             │
 │  ┌──────────────────┐        ┌──────────────────┐          │
 │  │   twenty-front   │◄──────►│  twenty-server   │          │
 │  │   (React SPA)    │  API   │  (NestJS API)    │          │
 │  └──────────────────┘        └──────────────────┘          │
-│           │                           │                      │
-│           ▼                           ▼                      │
+│           │                           │                     │
+│           ▼                           ▼                     │
 │  ┌──────────────────┐        ┌──────────────────┐          │
 │  │    twenty-ui     │        │   PostgreSQL     │          │
 │  │ (UI Components)  │        │    Database      │          │
 │  └──────────────────┘        └──────────────────┘          │
-│                                       │                      │
-│                                       ▼                      │
+│                                       │                     │
+│                                       ▼                     │
 │                               ┌──────────────────┐          │
 │                               │      Redis       │          │
 │                               │    (Cache)       │          │
@@ -91,11 +93,11 @@ This repository contains extensive documentation covering all aspects of the Twe
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Monorepo Packages
+### 📦 Monorepo Packages
 
 The Twenty project is organized as a monorepo with the following main packages:
 
-- **twenty-front**: React frontend application
+- **🎨 twenty-front**: React frontend application
 - **twenty-server**: NestJS backend API
 - **twenty-ui**: Shared UI component library
 - **twenty-shared**: Shared types and utilities
