@@ -9,14 +9,14 @@ info: Visual architecture and flow diagrams for GraphQL endpoints
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                         Twenty CRM Platform                              │
-│                                                                          │
+│                         Twenty CRM Platform                             │
+│                                                                         │
 │  ┌────────────────────────────────────────────────────────────────────┐ │
 │  │                    API Layer (NestJS)                              │ │
 │  │                                                                    │ │
-│  │  ┌───────────────────────┐      ┌──────────────────────────┐    │ │
-│  │  │                       │      │                          │    │ │
-│  │  │   /graphql            │      │   /metadata              │    │ │
+│  │  ┌───────────────────────┐      ┌──────────────────────────┐       │ │
+│  │  │                       │      │                          │       │ │
+│  │  │   /graphql            │      │   /metadata              │       │ │
 │  │  │   Core API            │      │   Metadata API           │    │ │
 │  │  │                       │      │                          │    │ │
 │  │  │   GraphQL Yoga        │      │   GraphQL Yoga           │    │ │
@@ -111,8 +111,8 @@ info: Visual architecture and flow diagrams for GraphQL endpoints
 │  • Load Index Metadata                    │  │
 │  • Get Metadata Version                   │  │
 └──────────┬────────────────────────────────┘  │
-           │                                    │
-           │ objectMetadataMaps                 │
+           │                                   │
+           │ objectMetadataMaps                │
            ▼                                    │
 5. Schema Building                             │
    │                                            │
@@ -390,7 +390,6 @@ info: Visual architecture and flow diagrams for GraphQL endpoints
 │  │                                                            │         │
 │  │  ObjectMetadataItems → Cached introspection               │         │
 │  │                                                            │         │
-│  │  TTL: Short (5 minutes)                                   │         │
 │  └───────────────────────────────────────────────────────────┘         │
 │                                                                          │
 │  ┌───────────────────────────────────────────────────────────┐         │
@@ -587,7 +586,7 @@ Object: "person"
       │   └─ SQL: SELECT * FROM workspace.activity WHERE personId = person.id
       │
       └─ opportunities: OpportunityConnection (from relation metadata)
-          └─ SQL: SELECT * FROM workspace.opportunity 
+          └─ SQL: SELECT * FROM workspace.opportunity
                   JOIN person_opportunity ON ...
 ```
 
