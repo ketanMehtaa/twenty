@@ -24,6 +24,14 @@
 
 <br />
 
+# Documentation
+
+📖 **[Complete Project Documentation](./DOCUMENTATION_GUIDE.md)** - Start here for comprehensive documentation!
+
+- [Project Overview](./PROJECT_OVERVIEW.md) - Architecture, tech stack, and development workflow
+- [Frontend Architecture](./FRONTEND_ARCHITECTURE.md) - React, Recoil, GraphQL, and component structure
+- [Backend Architecture](./BACKEND_ARCHITECTURE.md) - NestJS, metadata system, and workspace architecture
+
 # Installation 
 
 See:  
