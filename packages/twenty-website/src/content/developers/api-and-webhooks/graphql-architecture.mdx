@@ -1,0 +1,662 @@
+---
+title: GraphQL Architecture Diagrams
+icon: TbSchema
+image: /images/docs/getting-started/api.png
+info: Visual architecture and flow diagrams for GraphQL endpoints
+---
+
+## System Overview
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         Twenty CRM Platform                              │
+│                                                                          │
+│  ┌────────────────────────────────────────────────────────────────────┐ │
+│  │                    API Layer (NestJS)                              │ │
+│  │                                                                    │ │
+│  │  ┌───────────────────────┐      ┌──────────────────────────┐    │ │
+│  │  │                       │      │                          │    │ │
+│  │  │   /graphql            │      │   /metadata              │    │ │
+│  │  │   Core API            │      │   Metadata API           │    │ │
+│  │  │                       │      │                          │    │ │
+│  │  │   GraphQL Yoga        │      │   GraphQL Yoga           │    │ │
+│  │  │   + Workspace Schema  │      │   + Fixed Schema         │    │ │
+│  │  │                       │      │                          │    │ │
+│  │  └───────────┬───────────┘      └───────────┬──────────────┘    │ │
+│  │              │                                │                  │ │
+│  │              │                                │                  │ │
+│  │  ┌───────────▼────────────────────────────────▼──────────────┐  │ │
+│  │  │                                                            │  │ │
+│  │  │              Core Modules & Services                       │  │ │
+│  │  │                                                            │  │ │
+│  │  │  • Authentication        • Cache Storage                  │  │ │
+│  │  │  • Authorization         • Dataloaders                    │  │ │
+│  │  │  • Schema Factory        • Exception Handlers             │  │ │
+│  │  │  • Resolver Factory      • Metrics                        │  │ │
+│  │  │                                                            │  │ │
+│  │  └────────────────────────────┬───────────────────────────────┘  │ │
+│  └───────────────────────────────┼──────────────────────────────────┘ │
+│                                  │                                     │
+│  ┌───────────────────────────────▼──────────────────────────────────┐ │
+│  │                      Data Layer                                  │ │
+│  │                                                                  │ │
+│  │  ┌────────────────────┐      ┌────────────────────┐            │ │
+│  │  │   PostgreSQL       │      │   Redis            │            │ │
+│  │  │                    │      │                    │            │ │
+│  │  │  • Workspace Data  │      │  • Schema Cache    │            │ │
+│  │  │  • Metadata Tables │      │  • Session Store   │            │ │
+│  │  │  • User Data       │      │  • Rate Limiting   │            │ │
+│  │  └────────────────────┘      └────────────────────┘            │ │
+│  └──────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+## Core API Schema Generation Flow
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                   Core API Request Processing                            │
+└─────────────────────────────────────────────────────────────────────────┘
+
+1. Incoming Request
+   │
+   ▼
+┌──────────────────────┐
+│ POST /graphql        │
+│ Headers:             │
+│   Authorization: ... │
+│   Content-Type: ...  │
+│ Body:                │
+│   { query: "..." }   │
+└──────────┬───────────┘
+           │
+           ▼
+2. Authentication & Workspace Extraction
+   │
+┌──────────▼───────────────────────────────────────────┐
+│ WorkspaceAuthGuard                                    │
+│  • Validate API Key / JWT Token                      │
+│  • Extract Workspace ID                              │
+│  • Load User Context                                 │
+│  • Check Workspace Access                            │
+└──────────┬───────────────────────────────────────────┘
+           │
+           │ Success: workspace = { id: "uuid", ... }
+           ▼
+3. Schema Resolution
+   │
+┌──────────▼───────────────────────────────────────────┐
+│ WorkspaceSchemaFactory.createGraphQLSchema()         │
+│                                                       │
+│  Check Cache:                                        │
+│  └─ Key: "workspace_{id}_schema_v{version}"         │
+│                                                       │
+│  If Cached:                                          │
+│  └─ Return cached schema ────────────────────┐      │
+│                                               │      │
+│  If Not Cached:                              │      │
+│  └─ Generate new schema                      │      │
+│                                               │      │
+└───────────┬───────────────────────────────────┴──────┘
+            │                                   │
+            │ Not in cache                     │ From cache
+            ▼                                   │
+4. Metadata Retrieval                          │
+   │                                            │
+┌──────────▼────────────────────────────────┐  │
+│ WorkspaceMetadataCacheService             │  │
+│  • Load Object Metadata                   │  │
+│  • Load Field Metadata                    │  │
+│  • Load Relation Metadata                 │  │
+│  • Load Index Metadata                    │  │
+│  • Get Metadata Version                   │  │
+└──────────┬────────────────────────────────┘  │
+           │                                    │
+           │ objectMetadataMaps                 │
+           ▼                                    │
+5. Schema Building                             │
+   │                                            │
+┌──────────▼────────────────────────────────┐  │
+│ WorkspaceGraphQLSchemaGenerator           │  │
+│  • Generate GraphQL Types                 │  │
+│  • Generate Input Types                   │  │
+│  • Generate Query Types                   │  │
+│  • Generate Mutation Types                │  │
+│  • Generate Enum Types                    │  │
+└──────────┬────────────────────────────────┘  │
+           │                                    │
+           │ typeDefs (GraphQL SDL)             │
+           ▼                                    │
+6. Resolver Creation                           │
+   │                                            │
+┌──────────▼────────────────────────────────┐  │
+│ WorkspaceResolverFactory                  │  │
+│  • Create Query Resolvers:               │  │
+│    - findOne{Object}                      │  │
+│    - findMany{Objects}                    │  │
+│    - findDuplicate{Object}                │  │
+│  • Create Mutation Resolvers:            │  │
+│    - createOne{Object}                    │  │
+│    - updateOne{Object}                    │  │
+│    - deleteOne{Object}                    │  │
+│    - ... (and many more)                  │  │
+│  • Create Field Resolvers                │  │
+│    - Relationship resolvers               │  │
+└──────────┬────────────────────────────────┘  │
+           │                                    │
+           │ resolvers                          │
+           ▼                                    │
+7. Schema Assembly                             │
+   │                                            │
+┌──────────▼────────────────────────────────┐  │
+│ makeExecutableSchema()                    │  │
+│  • Combine typeDefs + resolvers           │  │
+│  • Create executable GraphQL schema       │  │
+└──────────┬────────────────────────────────┘  │
+           │                                    │
+           │ GraphQLSchema                      │
+           ▼                                    │
+8. Cache Storage                               │
+   │                                            │
+┌──────────▼────────────────────────────────┐  │
+│ WorkspaceCacheStorageService.set()        │  │
+│  • Store schema in Redis                  │  │
+│  • Key: workspace_{id}_schema_v{version}  │  │
+│  • TTL: Until metadata changes            │  │
+└──────────┬────────────────────────────────┘  │
+           │                                    │
+           └────────────────────────────────────┘
+           │
+           │ GraphQLSchema (ready to use)
+           ▼
+9. Query Execution
+   │
+┌──────────▼────────────────────────────────┐
+│ GraphQL Yoga Engine                       │
+│  • Parse query                            │
+│  • Validate against schema                │
+│  • Execute resolvers                      │
+│  • Apply field selection                  │
+│  • Handle errors                          │
+└──────────┬────────────────────────────────┘
+           │
+           │ Resolver Execution
+           ▼
+┌──────────▼────────────────────────────────┐
+│ Resolver Logic                            │
+│  • WorkspaceQueryRunner                   │
+│  • Build SQL query                        │
+│  • Execute against workspace schema       │
+│  • Transform results                      │
+└──────────┬────────────────────────────────┘
+           │
+           │ Database Query
+           ▼
+┌──────────▼────────────────────────────────┐
+│ PostgreSQL                                │
+│  • Execute query on workspace schema      │
+│  • Return rows                            │
+└──────────┬────────────────────────────────┘
+           │
+           │ Raw Data
+           ▼
+10. Response Formatting
+    │
+┌───────────▼───────────────────────────────┐
+│ GraphQL Response Builder                  │
+│  • Transform to GraphQL response shape    │
+│  • Apply pagination cursors               │
+│  • Format errors if any                   │
+└───────────┬───────────────────────────────┘
+            │
+            │ Final JSON Response
+            ▼
+┌───────────▼───────────────────────────────┐
+│ {                                         │
+│   "data": {                               │
+│     "people": {                           │
+│       "edges": [ ... ]                    │
+│     }                                     │
+│   }                                       │
+│ }                                         │
+└───────────────────────────────────────────┘
+```
+
+## Metadata API Request Flow
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                Metadata API Request Processing                           │
+└─────────────────────────────────────────────────────────────────────────┘
+
+1. Incoming Request
+   │
+   ▼
+┌──────────────────────┐
+│ POST /metadata       │
+│ Headers:             │
+│   Authorization: ... │
+│ Body:                │
+│   { mutation: "..." }│
+└──────────┬───────────┘
+           │
+           ▼
+2. Authentication & Permission Check
+   │
+┌──────────▼───────────────────────────────────────────┐
+│ WorkspaceAuthGuard + SettingsPermissionsGuard        │
+│  • Validate API Key                                  │
+│  • Extract Workspace ID                              │
+│  • Check User Role (Admin/Owner required)            │
+│  • Verify DATA_MODEL permission                      │
+└──────────┬───────────────────────────────────────────┘
+           │
+           │ Success: authorized user with admin role
+           ▼
+3. GraphQL Parsing & Validation
+   │
+┌──────────▼───────────────────────────────────────────┐
+│ GraphQL Yoga Engine (Fixed Schema)                   │
+│  • Parse mutation                                    │
+│  • Validate against MetadataAPI schema               │
+│  • Extract operation & arguments                     │
+└──────────┬───────────────────────────────────────────┘
+           │
+           │ Valid mutation: createOneField(...)
+           ▼
+4. Resolver Execution
+   │
+┌──────────▼───────────────────────────────────────────┐
+│ FieldMetadataResolver.createOneField()               │
+│  • Receive input                                     │
+│  • Validate field configuration                      │
+│  • Check for name conflicts                          │
+└──────────┬───────────────────────────────────────────┘
+           │
+           │ Validated input
+           ▼
+5. Service Layer Processing
+   │
+┌──────────▼───────────────────────────────────────────┐
+│ FieldMetadataService.createOne()                     │
+│  • Business logic validation                         │
+│  • Check object exists                               │
+│  • Validate field type                               │
+│  • Set default values                                │
+└──────────┬───────────────────────────────────────────┘
+           │
+           │ Validated field metadata
+           ▼
+6. Metadata Database Update
+   │
+┌──────────▼───────────────────────────────────────────┐
+│ TypeORM Repository                                   │
+│  • Insert into metadata.fieldMetadata table          │
+│  • Generate UUID                                     │
+│  • Set timestamps                                    │
+└──────────┬───────────────────────────────────────────┘
+           │
+           │ Saved metadata record
+           ▼
+7. Workspace Migration
+   │
+┌──────────▼───────────────────────────────────────────┐
+│ WorkspaceMigrationService                            │
+│  • Generate SQL migration                            │
+│  • ALTER TABLE workspace.{object}                    │
+│  • ADD COLUMN {field} {type}                         │
+│  • Apply constraints                                 │
+└──────────┬───────────────────────────────────────────┘
+           │
+           │ SQL Migration Script
+           ▼
+┌──────────▼───────────────────────────────────────────┐
+│ PostgreSQL - Execute Migration                       │
+│  • Run ALTER TABLE command                           │
+│  • Update workspace schema                           │
+│  • Commit transaction                                │
+└──────────┬───────────────────────────────────────────┘
+           │
+           │ Migration successful
+           ▼
+8. Cache Invalidation
+   │
+┌──────────▼───────────────────────────────────────────┐
+│ WorkspaceMetadataCacheService                        │
+│  • Increment metadata version                        │
+│  • Invalidate schema cache                           │
+│  • Clear related caches                              │
+└──────────┬───────────────────────────────────────────┘
+           │
+           │ Cache invalidated
+           ▼
+9. Response Formation
+   │
+┌──────────▼───────────────────────────────────────────┐
+│ Return FieldMetadataDTO                              │
+│  • Include new field ID                              │
+│  • Include all field properties                      │
+│  • Format for GraphQL response                       │
+└──────────┬───────────────────────────────────────────┘
+           │
+           │ Final Response
+           ▼
+┌──────────▼───────────────────────────────────────────┐
+│ {                                                    │
+│   "data": {                                          │
+│     "createOneField": {                              │
+│       "id": "field-uuid",                            │
+│       "name": "customField",                         │
+│       "label": "Custom Field",                       │
+│       "type": "TEXT",                                │
+│       "isCustom": true                               │
+│     }                                                │
+│   }                                                  │
+│ }                                                    │
+└──────────────────────────────────────────────────────┘
+           │
+           ▼
+10. Next Core API Request
+    │
+┌───────────▼──────────────────────────────────────────┐
+│ Core API detects new metadata version                │
+│  • Generates new schema with new field               │
+│  • Field is now queryable/mutable                    │
+└──────────────────────────────────────────────────────┘
+```
+
+## Cache Strategy Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        Caching Architecture                              │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Redis Cache Store                                                        │
+│                                                                          │
+│  ┌───────────────────────────────────────────────────────────┐         │
+│  │ Workspace Schemas                                          │         │
+│  │                                                            │         │
+│  │  workspace_123_schema_v1 → GraphQLSchema (serialized)     │         │
+│  │  workspace_123_schema_v2 → GraphQLSchema (serialized)     │         │
+│  │  workspace_456_schema_v1 → GraphQLSchema (serialized)     │         │
+│  │                                                            │         │
+│  │  TTL: Until metadata version changes                      │         │
+│  └───────────────────────────────────────────────────────────┘         │
+│                                                                          │
+│  ┌───────────────────────────────────────────────────────────┐         │
+│  │ Metadata Query Results                                     │         │
+│  │                                                            │         │
+│  │  ObjectMetadataItems → Cached introspection               │         │
+│  │                                                            │         │
+│  │  TTL: Short (5 minutes)                                   │         │
+│  └───────────────────────────────────────────────────────────┘         │
+│                                                                          │
+│  ┌───────────────────────────────────────────────────────────┐         │
+│  │ Rate Limiting                                              │         │
+│  │                                                            │         │
+│  │  ratelimit:user_789 → Request count                       │         │
+│  │  ratelimit:ip_1.2.3.4 → Request count                     │         │
+│  │                                                            │         │
+│  │  TTL: Configurable (1 minute default)                     │         │
+│  └───────────────────────────────────────────────────────────┘         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+Cache Invalidation Triggers:
+
+┌─────────────────────────────────────────────┐
+│ Metadata Changes (via /metadata API)        │
+│                                             │
+│  • Create field    ─┐                       │
+│  • Update field     ├─► Increment version   │
+│  • Delete field    ─┤   number             │
+│  • Update object   ─┤                       │
+│  • Create relation ─┘                       │
+│                                             │
+│  Version: v1 → v2                           │
+│  Cache key changes automatically            │
+│  Old cache entry becomes stale              │
+│  New entry generated on next request        │
+└─────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────┐
+│ Cache Hit Flow                               │
+│                                             │
+│  Request → Check cache → Found              │
+│             └─ Return cached schema          │
+│                (< 1ms response time)         │
+└─────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────┐
+│ Cache Miss Flow                              │
+│                                             │
+│  Request → Check cache → Not found          │
+│             └─ Generate schema               │
+│                (50-200ms first request)      │
+│             └─ Store in cache                │
+│             └─ Return schema                 │
+└─────────────────────────────────────────────┘
+```
+
+## Database Schema Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                       PostgreSQL Database                                │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Metadata Schema (Configuration)                                         │
+│                                                                          │
+│  ┌──────────────────────────────────────────────────────────────────┐  │
+│  │ objectMetadata                                                   │  │
+│  │  • id (UUID)                                                     │  │
+│  │  • nameSingular (e.g., "person")                                 │  │
+│  │  • namePlural (e.g., "people")                                   │  │
+│  │  • labelSingular, labelPlural                                    │  │
+│  │  • description, icon                                             │  │
+│  │  • isCustom, isActive, isSystem                                  │  │
+│  │  • workspaceId                                                   │  │
+│  └──────────────────────────────────────────────────────────────────┘  │
+│                                                                          │
+│  ┌──────────────────────────────────────────────────────────────────┐  │
+│  │ fieldMetadata                                                    │  │
+│  │  • id (UUID)                                                     │  │
+│  │  • objectMetadataId (FK)                                         │  │
+│  │  • name (e.g., "firstName")                                      │  │
+│  │  • label, description                                            │  │
+│  │  • type (TEXT, NUMBER, etc.)                                     │  │
+│  │  • defaultValue                                                  │  │
+│  │  • isCustom, isActive, isSystem, isNullable                      │  │
+│  │  • options (for SELECT fields)                                   │  │
+│  └──────────────────────────────────────────────────────────────────┘  │
+│                                                                          │
+│  ┌──────────────────────────────────────────────────────────────────┐  │
+│  │ relationMetadata                                                 │  │
+│  │  • id (UUID)                                                     │  │
+│  │  • fromFieldMetadataId, toFieldMetadataId                        │  │
+│  │  • fromObjectMetadataId, toObjectMetadataId                      │  │
+│  │  • relationType (ONE_TO_MANY, MANY_TO_ONE, etc.)                 │  │
+│  └──────────────────────────────────────────────────────────────────┘  │
+│                                                                          │
+│  ┌──────────────────────────────────────────────────────────────────┐  │
+│  │ indexMetadata                                                    │  │
+│  │  • id (UUID)                                                     │  │
+│  │  • objectMetadataId (FK)                                         │  │
+│  │  • name                                                          │  │
+│  │  • fields (array)                                                │  │
+│  │  • isUnique                                                      │  │
+│  └──────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Workspace Schemas (Actual Data) - One per workspace                     │
+│                                                                          │
+│  ┌──────────────────────────────────────────────────────────────────┐  │
+│  │ workspace_abc123.person (generated from objectMetadata)          │  │
+│  │  • id (UUID) - PK                                                │  │
+│  │  • firstName (TEXT) - from fieldMetadata                         │  │
+│  │  • lastName (TEXT) - from fieldMetadata                          │  │
+│  │  • email (TEXT) - from fieldMetadata                             │  │
+│  │  • companyId (UUID) - FK, from relationMetadata                  │  │
+│  │  • customField (TEXT) - custom field via Metadata API            │  │
+│  │  • createdAt, updatedAt, deletedAt                               │  │
+│  └──────────────────────────────────────────────────────────────────┘  │
+│                                                                          │
+│  ┌──────────────────────────────────────────────────────────────────┐  │
+│  │ workspace_abc123.company                                         │  │
+│  │  • id (UUID) - PK                                                │  │
+│  │  • name (TEXT)                                                   │  │
+│  │  • industry (TEXT)                                               │  │
+│  │  • createdAt, updatedAt, deletedAt                               │  │
+│  └──────────────────────────────────────────────────────────────────┘  │
+│                                                                          │
+│  ┌──────────────────────────────────────────────────────────────────┐  │
+│  │ workspace_xyz789.person (different workspace, same structure)    │  │
+│  │  • ... same fields as above workspace ...                        │  │
+│  │  • But isolated data                                             │  │
+│  └──────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────┘
+
+Data Flow:
+
+1. Metadata API creates/updates fieldMetadata
+   └─► Generates migration SQL
+       └─► Updates workspace schema (ALTER TABLE)
+           └─► Increments metadata version
+               └─► Invalidates Core API schema cache
+                   └─► Core API regenerates schema on next request
+```
+
+## Resolver Generation Map
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│        From Object Metadata to GraphQL Resolvers                         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+Object: "person"
+  │
+  ├─► Query Resolvers Generated:
+  │   │
+  │   ├─ findOnePerson(id: UUID!): Person
+  │   │   └─ SQL: SELECT * FROM workspace.person WHERE id = $1
+  │   │
+  │   ├─ findManyPeople(filter, orderBy, first, after): PersonConnection
+  │   │   └─ SQL: SELECT * FROM workspace.person WHERE ... ORDER BY ... LIMIT ...
+  │   │
+  │   └─ findDuplicatePerson(data): [Person]
+  │       └─ SQL: SELECT * FROM workspace.person WHERE ...
+  │
+  ├─► Mutation Resolvers Generated:
+  │   │
+  │   ├─ createOnePerson(data: PersonCreateInput!): Person
+  │   │   └─ SQL: INSERT INTO workspace.person (...) VALUES (...)
+  │   │
+  │   ├─ createManyPeople(data: [PersonCreateInput!]!): [Person]
+  │   │   └─ SQL: INSERT INTO workspace.person (...) VALUES (...), (...)
+  │   │
+  │   ├─ updateOnePerson(id: UUID!, data: PersonUpdateInput!): Person
+  │   │   └─ SQL: UPDATE workspace.person SET ... WHERE id = $1
+  │   │
+  │   ├─ updateManyPeople(filter, data): [Person]
+  │   │   └─ SQL: UPDATE workspace.person SET ... WHERE ...
+  │   │
+  │   ├─ deleteOnePerson(id: UUID!): Person
+  │   │   └─ SQL: UPDATE workspace.person SET deletedAt = NOW() WHERE id = $1
+  │   │
+  │   ├─ deleteManyPeople(filter): [Person]
+  │   │   └─ SQL: UPDATE workspace.person SET deletedAt = NOW() WHERE ...
+  │   │
+  │   ├─ restoreOnePerson(id: UUID!): Person
+  │   │   └─ SQL: UPDATE workspace.person SET deletedAt = NULL WHERE id = $1
+  │   │
+  │   ├─ destroyOnePerson(id: UUID!): Person
+  │   │   └─ SQL: DELETE FROM workspace.person WHERE id = $1
+  │   │
+  │   └─ mergeManyPeople(ids: [UUID!]!): Person
+  │       └─ SQL: Complex merge logic with multiple queries
+  │
+  └─► Field Resolvers Generated:
+      │
+      ├─ company: Company (from relation metadata)
+      │   └─ SQL: SELECT * FROM workspace.company WHERE id = person.companyId
+      │
+      ├─ activities: ActivityConnection (from relation metadata)
+      │   └─ SQL: SELECT * FROM workspace.activity WHERE personId = person.id
+      │
+      └─ opportunities: OpportunityConnection (from relation metadata)
+          └─ SQL: SELECT * FROM workspace.opportunity 
+                  JOIN person_opportunity ON ...
+```
+
+## Authentication & Authorization Flow
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                  Authentication & Authorization                          │
+└─────────────────────────────────────────────────────────────────────────┘
+
+API Request
+    │
+    ▼
+┌─────────────────────────────────────┐
+│ Extract Authorization Header         │
+│  Authorization: Bearer <token>      │
+└────────────┬────────────────────────┘
+             │
+             ▼
+┌─────────────────────────────────────┐
+│ Identify Token Type                  │
+│  • API Key (starts with specific    │
+│    format)                           │
+│  • JWT Token (workspace user)        │
+└────────────┬────────────────────────┘
+             │
+       ┌─────┴─────┐
+       │           │
+  API Key        JWT
+       │           │
+       ▼           ▼
+┌──────────┐  ┌──────────┐
+│ Validate │  │ Validate │
+│ API Key  │  │ JWT      │
+│ in DB    │  │ Signature│
+└────┬─────┘  └────┬─────┘
+     │             │
+     └──────┬──────┘
+            │
+            ▼
+┌─────────────────────────────────────┐
+│ Load Workspace Context               │
+│  • workspace: { id, name, ... }     │
+│  • user: { id, role, ... }          │
+│  • apiKey: { id, name, ... }        │
+└────────────┬────────────────────────┘
+             │
+             ▼
+┌─────────────────────────────────────┐
+│ Check Endpoint Permissions           │
+│                                     │
+│  For /graphql:                       │
+│  └─ Workspace access required       │
+│                                     │
+│  For /metadata writes:              │
+│  └─ Admin/Owner role required       │
+│  └─ DATA_MODEL permission check     │
+└────────────┬────────────────────────┘
+             │
+       ┌─────┴─────┐
+       │           │
+   Allowed    Denied
+       │           │
+       ▼           ▼
+  Proceed    403 Forbidden
+```
+
+## Related Resources
+
+- [GraphQL Endpoints Documentation](/developers/api-and-webhooks/graphql-endpoints) - Full documentation
+- [GraphQL Quick Reference](/developers/api-and-webhooks/graphql-quick-reference) - Code examples
+- [API Overview](/developers/api-and-webhooks/api) - General API documentation
